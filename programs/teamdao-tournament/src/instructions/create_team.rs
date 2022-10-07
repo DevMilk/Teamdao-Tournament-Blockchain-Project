@@ -39,7 +39,6 @@ pub struct CreateTeam<'info> {
     //Team Founder
     #[account(
         mut,
-        signer,
         seeds = ["user-account".as_bytes(), signer.key().as_ref()], 
         bump = founder_user.bump
     )]
