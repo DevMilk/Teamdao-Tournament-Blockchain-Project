@@ -14,5 +14,5 @@ impl Team {
         1 + //bump
         4 +(32 * 5) + // members limited with 5
         4 + 30; //team name max 30 character
-    pub const SEED: &[u8] = "team".as_bytes();
+    //pub const SEED: &'static[u8; 4] = b"team"; referencing seeds not works :/
 }

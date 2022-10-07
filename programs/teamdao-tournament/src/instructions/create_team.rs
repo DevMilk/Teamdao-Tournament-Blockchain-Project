@@ -31,7 +31,7 @@ pub struct CreateTeam<'info> {
         init, 
         payer = signer, 
         space = Team::LEN, 
-        seeds = [Team::SEED, team_name.as_bytes()], 
+        seeds = ["team".as_bytes(), team_name.as_bytes()], 
         bump,
     )] 
     pub team: Account<'info, Team>,
@@ -40,7 +40,7 @@ pub struct CreateTeam<'info> {
     #[account(
         mut,
         signer,
-        seeds = [UserAccount::SEED, signer.key().as_ref()], 
+        seeds = ["user-account".as_bytes(), signer.key().as_ref()], 
         bump = founder_user.bump
     )]
     pub founder_user: Account<'info, UserAccount>,

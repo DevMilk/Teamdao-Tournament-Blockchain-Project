@@ -3,36 +3,33 @@ import { Program } from '@project-serum/anchor'
 import { assert } from 'console'
 import { generateKeyPair, generateKeyPairSync } from 'crypto'
 import { TeamdaoTournament } from '../target/types/teamdao_tournament'
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL} from "@solana/web3.js";
 describe('teamdao-tournament', () => {
-  const provider = anchor.AnchorProvider.env()
-  anchor.setProvider(provider)
+  /*const provider = anchor.AnchorProvider.env()
+  anchor.setProvider(provider)*/
 
+  
+  const generateAccount = async (): Promise<anchor.web3.Keypair> => {
+    const keypair = anchor.web3.Keypair.generate();
+    await program.provider.connection.confirmTransaction(await program.provider.connection.requestAirdrop(keypair.publicKey, LAMPORTS_PER_SOL * 10));
+    return keypair;
+
+  }
+  const generateUserAccount = async() : Promise<[anchor.web3.Keypair, anchor.web3.PublicKey]> => {
+    const newUser = await generateAccount()
+    const ix = await program.methods.createUserAccount().accounts({signer: newUser.publicKey}).signers([newUser]);
+    
+    const userAccountAddress = (await ix.pubkeys()).userAccount;
+
+    const tx = await ix.rpc()
+
+    return [newUser,userAccountAddress];
+  }
   const program = anchor.workspace.TeamdaoTournament as Program<TeamdaoTournament>
 
   
   it('Creating a new account for user', async () => {
-    
-    let ix = await program.methods.createUserAccount();
-    
-    /*
-    const newUser = anchor.web3.Keypair.generate();
-    await program.provider.connection.requestAirdrop(
-      newUser.publicKey,
-      anchor.web3.LAMPORTS_PER_SOL * 10
-    );
-    ix = ix.accounts({
-      user_account: newUser.publicKey,
-    }).signers([newUser]);
-    // Works in here: https://github.com/coral-xyz/anchor-by-example/blob/master/programs/onchain-voting/programs/onchain-voting/src/lib.rs
-    */
-   
-    const userAccountAddress = (await ix.pubkeys()).userAccount;
-    console.log('User account address :: ', userAccountAddress.toString())
-
-    // Create user's facebook address
-    const tx = await ix.rpc()
-    console.log('Your transaction signature', tx)
+    const [_, userAccountAddress] = await generateUserAccount();
 
     // User Details
     let userDetails = await program.account.userAccount.fetch(
@@ -40,10 +37,12 @@ describe('teamdao-tournament', () => {
     )
   })
 
-  it('Close My Facebook Account', async () => {
-    const ix = await program.methods.deleteAccount()
-    const userAccountAddress = (await ix.pubkeys()).userAccount
-    console.log('usrFaceBook Address :: ', userAccountAddress.toString())
+  it('Close My User Account', async () => {
+    const [keypair, userAccountAddress] = await generateUserAccount();
+
+    const ix = await program.methods.deleteAccount().accounts({signer: keypair.publicKey}).signers([keypair])
+    const userAddress = (await ix.pubkeys()).userAccount
+    console.log('User Address :: ', userAddress.toString())
 
     // Create user's account address
     const tx = await ix.rpc()
@@ -51,7 +50,7 @@ describe('teamdao-tournament', () => {
 
     // It will return error if it doesn't find an account 
     try {
-      let userDetails = await program.account.userAccount.fetch(
+      await program.account.userAccount.fetch(
         userAccountAddress
       )
       assert(false);

@@ -23,32 +23,33 @@ pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()>
 #[instruction(answer: bool)]
 pub struct AnswerProposal<'info> {
 
+    //Invitation must be signed by invited user
     #[account(
         mut, 
-        seeds = [InvitationProposal::SEED, signer.key().as_ref(), invitation_proposal.team.as_ref()], 
+        seeds = ["invitation-proposal".as_bytes(), signer.key().as_ref(), team.key().as_ref()], 
         bump = invitation_proposal.bump,
-        constraint = invitation_proposal.invited == signer.key() @ Errors::NonAuthorityInvitation,
-        constraint = invitation_proposal.team == team.key() @ Errors::NotProposalOfGivenTeamAccount,
-        constraint = invitation_proposal.invited == invited.key() @ Errors::NotProposalOfGivenUserAcount,
         constraint = invited.current_team == None @ Errors::TeamCapacityNotEnough,
         close = signer
     )]
     pub invitation_proposal: Account<'info, InvitationProposal>,
 
+    //Team Account that user got invited
     #[account(
         mut,
-        seeds = [Team::SEED, team.team_name.as_bytes()],
+        seeds = ["team".as_bytes(), team.team_name.as_bytes()],
         bump = team.bump,
     )]
     pub team: Account<'info, Team>,
 
+    //Invited User
     #[account(
         mut,
-        seeds = [UserAccount::SEED, signer.key().as_ref()],
+        seeds = ["user-account".as_bytes(), signer.key().as_ref()],
         bump = invited.bump,
     )]
     pub invited: Account<'info, UserAccount>,
 
+    //Invited User's Sign
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info, System>,

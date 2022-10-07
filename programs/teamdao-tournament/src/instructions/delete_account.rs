@@ -13,7 +13,7 @@ pub struct DeleteAccount<'info> {
     //Deleted account must be account of signer
     #[account(
         mut,
-        seeds = [UserAccount::SEED, signer.key().as_ref()], 
+        seeds = ["user-account".as_bytes(), signer.key().as_ref()], 
         bump = user_account.bump,
         close=signer
     )]

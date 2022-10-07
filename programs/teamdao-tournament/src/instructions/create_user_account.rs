@@ -20,7 +20,7 @@ pub struct CreateUserAccount<'info> {
         init, 
         payer = signer, 
         space = UserAccount::LEN, 
-        seeds = [UserAccount::SEED, signer.key().as_ref()], 
+        seeds = ["user-account".as_bytes(), signer.key().as_ref()], 
         bump,
     )] 
     pub user_account: Account<'info, UserAccount>,

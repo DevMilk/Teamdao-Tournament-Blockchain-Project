@@ -8,8 +8,6 @@ pub fn invite_to_team(ctx: Context<InviteToTeam>) -> Result<()> {
     let proposal = &mut ctx.accounts.invitation_proposal;
     
     proposal.bump = *ctx.bumps.get("invitation_proposal").unwrap();
-    proposal.team = ctx.accounts.team.key();
-    proposal.invited = ctx.accounts.invited.key();
 
     Ok(())
 }
@@ -21,7 +19,7 @@ pub struct InviteToTeam<'info> {
     #[account(
         init,
         payer = signer,
-        seeds = [InvitationProposal::SEED, invited.key().as_ref(), team.key().as_ref()],
+        seeds = ["invitation-proposal".as_bytes(), invited.key().as_ref(), team.key().as_ref()],
         bump,
         space = InvitationProposal::LEN
     )] 
@@ -30,7 +28,7 @@ pub struct InviteToTeam<'info> {
     //Invited user
     #[account(
         mut,
-        seeds = [UserAccount::SEED, invited.key().as_ref()], 
+        seeds = ["user-account".as_bytes(), invited.key().as_ref()], 
         bump = invited.bump
         
     )] 
@@ -38,7 +36,7 @@ pub struct InviteToTeam<'info> {
 
     #[account(
         mut, 
-        seeds = [Team::SEED, team.team_name.as_bytes()], 
+        seeds = ["team".as_bytes(), team.team_name.as_bytes()], 
         bump = invited.bump,
         //Only authority of the team can invite someone
         constraint = team.authority == signer.key() @ Errors::NonAuthorityInvitation
