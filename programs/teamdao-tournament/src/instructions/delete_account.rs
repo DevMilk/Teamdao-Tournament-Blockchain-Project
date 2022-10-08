@@ -1,4 +1,4 @@
-use crate::structs::user_account::*;
+use crate::entities::user_account::*;
 use anchor_lang::prelude::*;
 
 pub fn delete_account(ctx: Context<DeleteAccount>) -> Result<()> {

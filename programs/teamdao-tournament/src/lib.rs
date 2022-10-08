@@ -3,7 +3,8 @@ use instructions::*;
 
 pub mod instructions;
 pub mod errors;
-pub mod structs;
+pub mod entities;
+pub mod constants;
 
 declare_id!("Anm8zfCbBFfZ4sWC3qRX5KKMpFdr7cLHbNGq1EKerACC");
 
@@ -31,7 +32,12 @@ pub mod teamdao_tournament {
     pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()> {
         return instructions::answer_proposal::answer_proposal(ctx, answer);
     }
+
     pub fn leave_team(ctx: Context<LeaveTeam>) -> Result<()> {
         return instructions::leave_team::leave_team(ctx);
+    }
+
+    pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String,  reward: u16) -> Result<()> {
+        return instructions::create_tournament::create_tournament(ctx, tournament_id, tournament_name, reward );
     }
 }

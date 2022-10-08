@@ -1,4 +1,4 @@
-use crate::structs::*;
+use crate::entities::*;
 use anchor_lang::prelude::*;
 
 

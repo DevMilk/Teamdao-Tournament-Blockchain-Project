@@ -1,6 +1,6 @@
-use crate::structs::*;
+use crate::entities::*;
 use crate::errors::*;
-
+use crate::constants::Constants;
 use anchor_lang::prelude::*;
 
 pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()> {    
@@ -11,7 +11,7 @@ pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()>
     
     if answer == true{
         //If user rejects invitation we dont need to check the capacity
-        require!(team.members.len() < 5, Errors::TeamCapacityNotEnough); 
+        require!(team.members.len() < 20, Errors::TeamCapacityNotEnough); 
         invited.current_team = team.team_name.clone();
         team.members.push(*ctx.accounts.signer.key);
     }

@@ -1,6 +1,6 @@
-use crate::structs::*;
+use crate::entities::*;
 use crate::errors::*;
-
+use crate::constants::Constants;
 use anchor_lang::prelude::*;
 
 pub fn create_team(ctx: Context<CreateTeam>, team_name: String) -> Result<()> {    
@@ -43,7 +43,6 @@ pub struct CreateTeam<'info> {
         bump = team_authority.bump
     )]
     pub team_authority: Account<'info, UserAccount>,
-
     
 
     #[account(mut)]

@@ -1,4 +1,4 @@
-use crate::structs::*;
+use crate::entities::*;
 use crate::errors::*;
 
 use anchor_lang::prelude::*;
@@ -43,7 +43,7 @@ pub struct LeaveTeam<'info> {
     )]
     pub team_member: Account<'info, UserAccount>,
 
-    
+
     //Team of user
     #[account(
         mut,

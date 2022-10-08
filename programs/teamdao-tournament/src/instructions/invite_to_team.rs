@@ -1,4 +1,4 @@
-use crate::structs::*;
+use crate::entities::*;
 use crate::errors::*;
 use anchor_lang::prelude::*;
 
@@ -32,7 +32,7 @@ pub struct InviteToTeam<'info> {
         seeds = ["team".as_bytes(), team_authority.current_team.as_bytes()],  //Checks if it is the signer = team_authority's team
         bump = team_account.bump,
         //Only authority of the team can invite someone
-        constraint = team_account.authority == signer.key() @ Errors::NonAuthorityInvitation
+        constraint = team_account.authority == signer.key() @ Errors::NonAuthorizedInvitation
     )]
     pub team_account: Account<'info, Team>,
 

@@ -15,7 +15,7 @@ describe('teamdao-tournament', () => {
     const newUser = anchor.web3.Keypair.generate();
     
     //Airdrop Sols to new user
-    await program.provider.connection.confirmTransaction(await program.provider.connection.requestAirdrop(newUser.publicKey, LAMPORTS_PER_SOL * 10));
+    await program.provider.connection.confirmTransaction(await program.provider.connection.requestAirdrop(newUser.publicKey, LAMPORTS_PER_SOL * 20));
 
     //Create user account for new user
     const ix = await program.methods.createUserAccount().accounts({signer: newUser.publicKey}).signers([newUser]);
@@ -42,6 +42,28 @@ describe('teamdao-tournament', () => {
 
     const tx = await ix.rpc();
     return (await ix.pubkeys()).team; 
+  }
+
+  //generates team for given user account and team name and returns Team PDA
+  const createTournament= async(
+    userKeypair : anchor.web3.Keypair, 
+    tournamentId : string,
+    tournamentName: string,
+    tournamentReward: number
+
+    ): Promise<anchor.web3.PublicKey> => {
+
+
+    const ix = await program.methods
+      .createTournament(tournamentId, tournamentName, tournamentReward)
+      .accounts(
+        {
+          signer: userKeypair.publicKey
+        })
+      .signers([userKeypair]);
+
+    const tx = await ix.rpc();
+    return (await ix.pubkeys()).newTournament; 
   }
 
   //Invite user to team
@@ -80,7 +102,8 @@ describe('teamdao-tournament', () => {
       .signers([userKeypair])
       .rpc();
     }
-  //Re
+
+  //Answer team invite yes (true) or not (false)
   const AnswerProposal = async(invited : anchor.web3.Keypair, teamPDA: anchor.web3.PublicKey, answer: boolean) => {
     const ix = await program.methods
       .answerProposal(answer)
@@ -107,8 +130,8 @@ describe('teamdao-tournament', () => {
     return isThrowedError;
   }
   //generates random names for team
-  const getRandomTeamName = () : string => 
-    Math.random().toString(36).slice(2,8);
+  const generateRandomString = (start = 2, end = 8) : string => 
+    Math.random().toString(36).slice(start,end);
   
   const program = anchor.workspace.TeamdaoTournament as Program<TeamdaoTournament>
   
@@ -145,7 +168,7 @@ describe('teamdao-tournament', () => {
     const [userKeypair, userAccountPDA] = await generateUserAccount();
 
     //create team
-    const teamName = getRandomTeamName();
+    const teamName = generateRandomString();
     const teamPDA = await createTeam(userKeypair,teamName);
 
     const team = await program.account.team.fetch(
@@ -156,7 +179,7 @@ describe('teamdao-tournament', () => {
 
   it('Throws error if user creats new team if user is already a team member', async () => {
     const [userKeypair, userAccountPDA] = await generateUserAccount();
-    const teamName = getRandomTeamName();
+    const teamName = generateRandomString();
     await createTeam(userKeypair,teamName);
 
     const isThrowedError = await isThrowsError( createTeam(userKeypair,"team2") );
@@ -168,7 +191,7 @@ describe('teamdao-tournament', () => {
     const [teamCaptain, teamCaptainPDA] = await generateUserAccount();
     const [userToInviteKeypair, __] = await generateUserAccount();
 
-    const teamName = getRandomTeamName();
+    const teamName = generateRandomString();
     const teamPDA = await createTeam(teamCaptain,teamName);
     await inviteToTeam(teamCaptain,userToInviteKeypair.publicKey);
 
@@ -183,7 +206,7 @@ describe('teamdao-tournament', () => {
   it('Can allow user to leave from team and if there is no member left then close team', async () => {
     const [teamCaptain, teamCaptainPDA] = await generateUserAccount();
 
-    const teamName = getRandomTeamName();
+    const teamName = generateRandomString();
     const teamPDA = await createTeam(teamCaptain,teamName);
 
     const teamData = await program.account.team.fetch(teamPDA);
@@ -193,5 +216,25 @@ describe('teamdao-tournament', () => {
     const isThrowedError = await isThrowsError( program.account.team.fetch(teamPDA ));
     expect(isThrowedError && foundMemberBeforeLeave).to.equal(true);
 
+  })
+
+  it('Can create a tournament', async () => {
+    const [founder, _] = await generateUserAccount();
+
+    //Parameters
+    const tournamentId = generateRandomString(0,16);
+    console.log(tournamentId);
+    const tournamentName = generateRandomString();
+    const tournamentRewardAsSOL = 10;
+
+    //Get created tournament
+    const tournamentPDA = await createTournament(founder, tournamentId, tournamentName, tournamentRewardAsSOL );
+
+    //Asset
+    const tournamentData = await program.account.tournament.fetch(tournamentPDA);
+    expect(tournamentData.tournamentId).to.equal(tournamentId);
+    expect(tournamentData.tournamentName).to.equal(tournamentName);
+    expect(tournamentData.reward).to.equal(tournamentRewardAsSOL);
+    expect(tournamentData.manager.toString()).to.equal(founder.publicKey.toString());
   })
 })

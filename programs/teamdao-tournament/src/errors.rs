@@ -5,8 +5,8 @@ pub enum Errors {
     #[msg("User already in a team")]
     UserAlreadyInATeam,
 
-    #[msg("Non-Authority members cant make team invitation")]
-    NonAuthorityInvitation,
+    #[msg("Non-Authoritzed members cant make team invitation")]
+    NonAuthorizedInvitation,
     
     #[msg("Proposal Account is not proposal of given Team Account")]
     NotProposalOfGivenTeamAccount,
@@ -16,4 +16,7 @@ pub enum Errors {
 
     #[msg("Team Capacity Not Enough, team members cant be higher than 5")]
     TeamCapacityNotEnough,
+
+    #[msg("Non-Authoritzed members cant create tournament participation voting")]
+    NonAuthorizedParticipation,
 }
