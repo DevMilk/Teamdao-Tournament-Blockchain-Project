@@ -25,7 +25,7 @@ pub struct InviteToTeam<'info> {
     )] 
     pub invitation_proposal: Account<'info, InvitationProposal>,
 
-    //Team Authority
+    //Team Authority (Auto)
     #[account(
         mut,
         seeds = ["user-account".as_bytes(), signer.key().as_ref()], //Check if it is signer's user account
@@ -39,7 +39,7 @@ pub struct InviteToTeam<'info> {
         seeds = ["team".as_bytes(), team_authority.current_team.as_bytes()],  //Checks if it is the signer = team_authority's team
         bump = team_account.bump,
         //Only authority of the team can invite someone
-        //constraint = team_account.authority == signer.key() @ Errors::NonAuthorityInvitation
+        constraint = team_account.authority == signer.key() @ Errors::NonAuthorityInvitation
     )]
     pub team_account: Account<'info, Team>,
 

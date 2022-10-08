@@ -31,4 +31,7 @@ pub mod teamdao_tournament {
     pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()> {
         return instructions::answer_proposal::answer_proposal(ctx, answer);
     }
+    pub fn leave_team(ctx: Context<LeaveTeam>) -> Result<()> {
+        return instructions::leave_team::leave_team(ctx);
+    }
 }

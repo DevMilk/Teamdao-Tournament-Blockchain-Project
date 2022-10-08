@@ -49,24 +49,40 @@ describe('teamdao-tournament', () => {
     teamAuthorityKeypair : anchor.web3.Keypair, 
     userToInvitePubKey: anchor.web3.PublicKey, 
     teamPDA: anchor.web3.PublicKey,
-    teamAuthorityPDA: anchor.web3.PublicKey
     ): Promise<anchor.web3.PublicKey> => {
     
     const ix = await program.methods
       .inviteToTeam(userToInvitePubKey)
       .accounts(
         {
-          teamAuthority: teamAuthorityPDA,
           teamAccount: teamPDA,
           signer: teamAuthorityKeypair.publicKey
         })
       .signers([teamAuthorityKeypair]);
-    
+    await ix.pubkeys();
     const tx = await ix.rpc();
 
-    const pubkeys = await ix.pubkeys();
     return (await ix.pubkeys()).invitationProposal; 
   }
+
+  //Leave current team
+  const leaveCurrentTeam = async(
+    userKeypair: anchor.web3.Keypair,
+    userPDA: anchor.web3.PublicKey
+    ) => {
+
+      //const teamPDA = await program.account.team.fetch(await program.account.userAccount.)
+      await program.methods
+      .leaveTeam()
+      .accounts(
+        {
+          teamMember: userPDA,
+          signer: userKeypair.publicKey
+        }
+      )
+      .signers([userKeypair])
+      .rpc();
+    }
   //Re
   const AnswerProposal = async(invited : anchor.web3.Keypair, teamPDA: anchor.web3.PublicKey, answer: boolean) => {
     const ix = await program.methods
@@ -91,8 +107,7 @@ describe('teamdao-tournament', () => {
       isThrowedError = true;
     }
 
-    if(!isThrowedError)
-      throw new Error("Assertion Failed");
+    return isThrowedError;
   }
   //generates random names for team
   const getRandomTeamName = () : string => 
@@ -123,11 +138,8 @@ describe('teamdao-tournament', () => {
     
 
     // It will return error if it doesn't find an account 
-    
-    await isThrowsError
-    (
-      program.account.userAccount.fetch(userAccountAddress)
-    )
+    const isThrowedError = await isThrowsError( program.account.userAccount.fetch(userAccountAddress) );
+    expect(isThrowedError).to.equal(true);
 
   })
 
@@ -150,10 +162,8 @@ describe('teamdao-tournament', () => {
     const teamName = getRandomTeamName();
     await createTeam(userKeypair,teamName);
 
-    await isThrowsError
-    (
-      createTeam(userKeypair,"team2")
-    )
+    const isThrowedError = await isThrowsError( createTeam(userKeypair,"team2") );
+    expect(isThrowedError).to.equal(true);
 
   })
   
@@ -163,14 +173,28 @@ describe('teamdao-tournament', () => {
 
     const teamName = getRandomTeamName();
     const teamPDA = await createTeam(teamCaptain,teamName);
-    const invitationProposalPDA = await inviteToTeam(teamCaptain,userToInviteKeypair.publicKey,teamPDA,teamCaptainPDA);
-    console.log("Invited To Team");
+    await inviteToTeam(teamCaptain,userToInviteKeypair.publicKey,teamPDA);
+
     await AnswerProposal(userToInviteKeypair,teamPDA,true);
-    console.log("Answered Proposal")
     
     const teamData = await program.account.team.fetch(teamPDA);
     const foundMember = teamData.members.includes(userToInviteKeypair.publicKey);
 
     expect(foundMember).to.not.equal(true);
+  })
+
+  it('Can allow user to leave from team and if there is no member left then close team', async () => {
+    const [teamCaptain, teamCaptainPDA] = await generateUserAccount();
+
+    const teamName = getRandomTeamName();
+    const teamPDA = await createTeam(teamCaptain,teamName);
+
+    const teamData = await program.account.team.fetch(teamPDA);
+    const foundMemberBeforeLeave = teamData.members.map(x=>x.toString()).includes(teamCaptain.publicKey.toString());
+
+    await leaveCurrentTeam(teamCaptain, teamCaptainPDA);
+    const isThrowedError = await isThrowsError( program.account.team.fetch(teamPDA ));
+    expect(isThrowedError && foundMemberBeforeLeave).to.equal(true);
+
   })
 })
