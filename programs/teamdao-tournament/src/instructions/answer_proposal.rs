@@ -22,6 +22,24 @@ pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()>
 #[derive(Accounts)]
 pub struct AnswerProposal<'info> {
 
+
+    //Invited User
+    #[account(
+        mut,
+        seeds = ["user-account".as_bytes(), signer.key().as_ref()],
+        bump = invited.bump,
+    )]
+    pub invited: Account<'info, UserAccount>,
+
+    //Team Account that user got invited (must be specified in accounts)
+    #[account(
+        mut,
+        seeds = ["team".as_bytes(), team_account.team_name.as_bytes()],
+        bump = team_account.bump,
+    )]
+    pub team_account: Account<'info, Team>,
+
+
     //Invitation must be signed by invited user
     //Invited user must not be in a team because one user can only have one team
     #[account(
@@ -32,22 +50,6 @@ pub struct AnswerProposal<'info> {
         close = signer
     )]
     pub invitation_proposal: Account<'info, InvitationProposal>,
-
-    //Team Account that user got invited (must be specified in accounts)
-    #[account(
-        mut,
-        seeds = ["team".as_bytes(), team_account.team_name.as_bytes()],
-        bump = team_account.bump,
-    )]
-    pub team_account: Account<'info, Team>,
-
-    //Invited User
-    #[account(
-        mut,
-        seeds = ["user-account".as_bytes(), signer.key().as_ref()],
-        bump = invited.bump,
-    )]
-    pub invited: Account<'info, UserAccount>,
 
     //Invited User's Sign
     #[account(mut)]
