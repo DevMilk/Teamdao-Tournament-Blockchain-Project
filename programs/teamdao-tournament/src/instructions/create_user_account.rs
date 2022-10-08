@@ -7,7 +7,7 @@ pub fn create_user_account(ctx: Context<CreateUserAccount>) -> Result<()> {
     let users_account_data = &mut ctx.accounts.user_account;
     
     users_account_data.bump = *ctx.bumps.get("user_account").unwrap();
-    users_account_data.current_team = None;
+    //users_account_data.current_team = String::from("");
 
     Ok(())
 }

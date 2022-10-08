@@ -6,15 +6,15 @@ use anchor_lang::prelude::*;
 pub fn create_team(ctx: Context<CreateTeam>, team_name: String) -> Result<()> {    
     // setting userdata in user's account
     let team_data = &mut ctx.accounts.team;
-    let founder_user = &mut ctx.accounts.founder_user;
+    let founder_user = &mut ctx.accounts.team_authority;
 
-    let founder_user_key = founder_user.key();
+    let signer_key = *ctx.accounts.signer.key;
 
-    team_data.team_name = team_name;
+    team_data.team_name = team_name.clone();
     team_data.bump = *ctx.bumps.get("team").unwrap();
-    team_data.authority = founder_user_key;
-    team_data.members.push(founder_user_key);
-    founder_user.current_team = Some(team_data.key());
+    team_data.authority = signer_key;
+    team_data.members.push(signer_key);
+    founder_user.current_team = team_name.clone();
 
     Ok(())
 }
@@ -27,7 +27,7 @@ pub struct CreateTeam<'info> {
     //Initilization of the team
     #[account(
         // Team founder must not be in any team.
-        constraint = founder_user.current_team == None @ Errors::AccountAlreadyInATeam,
+        constraint = team_authority.current_team.is_empty() @ Errors::UserAlreadyInATeam,
         init, 
         payer = signer, 
         space = Team::LEN, 
@@ -36,13 +36,13 @@ pub struct CreateTeam<'info> {
     )] 
     pub team: Account<'info, Team>,
 
-    //Team Founder
+    //Team Authority
     #[account(
         mut,
         seeds = ["user-account".as_bytes(), signer.key().as_ref()], 
-        bump = founder_user.bump
+        bump = team_authority.bump
     )]
-    pub founder_user: Account<'info, UserAccount>,
+    pub team_authority: Account<'info, UserAccount>,
 
     
 

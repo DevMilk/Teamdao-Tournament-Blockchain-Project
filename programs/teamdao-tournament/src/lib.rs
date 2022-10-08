@@ -24,8 +24,8 @@ pub mod teamdao_tournament {
         return instructions::create_team::create_team(ctx, team_name);
     }
 
-    pub fn invite_to_team(ctx: Context<InviteToTeam>) -> Result<()> {
-        return instructions::invite_to_team::invite_to_team(ctx);
+    pub fn invite_to_team(ctx: Context<InviteToTeam>, invited_pubkey: Pubkey) -> Result<()> {
+        return instructions::invite_to_team::invite_to_team(ctx, invited_pubkey);
     }
 
     pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()> {

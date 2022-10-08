@@ -44,8 +44,44 @@ describe('teamdao-tournament', () => {
     return (await ix.pubkeys()).team; 
   }
 
+  //Invite user to team
+  const inviteToTeam = async(
+    teamAuthorityKeypair : anchor.web3.Keypair, 
+    userToInvitePubKey: anchor.web3.PublicKey, 
+    teamPDA: anchor.web3.PublicKey,
+    teamAuthorityPDA: anchor.web3.PublicKey
+    ): Promise<anchor.web3.PublicKey> => {
+    
+    const ix = await program.methods
+      .inviteToTeam(userToInvitePubKey)
+      .accounts(
+        {
+          teamAuthority: teamAuthorityPDA,
+          teamAccount: teamPDA,
+          signer: teamAuthorityKeypair.publicKey
+        })
+      .signers([teamAuthorityKeypair]);
+    
+    const tx = await ix.rpc();
+
+    const pubkeys = await ix.pubkeys();
+    return (await ix.pubkeys()).invitationProposal; 
+  }
+  //Re
+  const AnswerProposal = async(invited : anchor.web3.Keypair, teamPDA: anchor.web3.PublicKey, answer: boolean) => {
+    const ix = await program.methods
+      .answerProposal(answer)
+      .accounts(
+        {
+          teamAccount: teamPDA,
+          signer: invited.publicKey
+        })
+      .signers([invited]);
+
+    const tx = await ix.rpc();
+  }
   //test function that tests if given async function throws error or not
-  const isThrowsErrorWithErrorCode = async<T>(func: Promise<T>) =>{
+  const isThrowsError = async<T>(func: Promise<T>) =>{
     
     let isThrowedError = false;
     try {
@@ -75,6 +111,26 @@ describe('teamdao-tournament', () => {
     )
   })
 
+  it('Can delete user account', async () => {
+    const [keypair, userAccountAddress] = await generateUserAccount();
+
+    //Delete new user
+    await program.methods
+      .deleteAccount()
+      .accounts({signer: keypair.publicKey})
+      .signers([keypair])
+      .rpc();
+    
+
+    // It will return error if it doesn't find an account 
+    
+    await isThrowsError
+    (
+      program.account.userAccount.fetch(userAccountAddress)
+    )
+
+  })
+
   it('Can create a new team', async () => {
     //create user
     const [userKeypair, userAccountPDA] = await generateUserAccount();
@@ -94,31 +150,27 @@ describe('teamdao-tournament', () => {
     const teamName = getRandomTeamName();
     await createTeam(userKeypair,teamName);
 
-    await isThrowsErrorWithErrorCode
+    await isThrowsError
     (
       createTeam(userKeypair,"team2")
     )
 
   })
-
   
-  it('Can delete user account', async () => {
-    const [keypair, userAccountAddress] = await generateUserAccount();
+  it('Can allow user to invite to team and invited user gets to the team if accepts', async () => {
+    const [teamCaptain, teamCaptainPDA] = await generateUserAccount();
+    const [userToInviteKeypair, __] = await generateUserAccount();
 
-    //Delete new user
-    await program.methods
-      .deleteAccount()
-      .accounts({signer: keypair.publicKey})
-      .signers([keypair])
-      .rpc();
+    const teamName = getRandomTeamName();
+    const teamPDA = await createTeam(teamCaptain,teamName);
+    const invitationProposalPDA = await inviteToTeam(teamCaptain,userToInviteKeypair.publicKey,teamPDA,teamCaptainPDA);
+    console.log("Invited To Team");
+    await AnswerProposal(userToInviteKeypair,teamPDA,true);
+    console.log("Answered Proposal")
     
+    const teamData = await program.account.team.fetch(teamPDA);
+    const foundMember = teamData.members.includes(userToInviteKeypair.publicKey);
 
-    // It will return error if it doesn't find an account 
-    
-    await isThrowsErrorWithErrorCode
-    (
-      program.account.userAccount.fetch(userAccountAddress)
-    )
-
+    expect(foundMember).to.not.equal(true);
   })
 })

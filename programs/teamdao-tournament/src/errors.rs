@@ -3,7 +3,7 @@ use anchor_lang::error_code;
 #[error_code]
 pub enum Errors {
     #[msg("User already in a team")]
-    AccountAlreadyInATeam,
+    UserAlreadyInATeam,
 
     #[msg("Non-Authority members cant make team invitation")]
     NonAuthorityInvitation,

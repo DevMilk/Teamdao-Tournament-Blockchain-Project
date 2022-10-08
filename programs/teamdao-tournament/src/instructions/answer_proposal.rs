@@ -5,41 +5,41 @@ use anchor_lang::prelude::*;
 
 pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()> {    
     // setting userdata in user's account
-    let team = &mut ctx.accounts.team;
+    let team = &mut ctx.accounts.team_account;
     let invited = &mut ctx.accounts.invited;
     
     
     if answer == true{
         //If user rejects invitation we dont need to check the capacity
-        require!(team.members.len() < 5, Errors::AccountAlreadyInATeam); 
-        invited.current_team = Some(team.key());
-        team.members.push(invited.key());
+        require!(team.members.len() < 5, Errors::TeamCapacityNotEnough); 
+        invited.current_team = team.team_name.clone();
+        team.members.push(*ctx.accounts.signer.key);
     }
     
     Ok(())
 }
 //constraint =  //User must not be in a team to accept but can be invited
 #[derive(Accounts)]
-#[instruction(answer: bool)]
 pub struct AnswerProposal<'info> {
 
     //Invitation must be signed by invited user
+    //Invited user must not be in a team because one user can only have one team
     #[account(
         mut, 
-        seeds = ["invitation-proposal".as_bytes(), signer.key().as_ref(), team.key().as_ref()], 
+        seeds = ["invitation-proposal".as_bytes(), signer.key().as_ref(), team_account.key().as_ref()], 
         bump = invitation_proposal.bump,
-        constraint = invited.current_team == None @ Errors::TeamCapacityNotEnough,
+        constraint = invited.current_team.is_empty() @ Errors::UserAlreadyInATeam,
         close = signer
     )]
     pub invitation_proposal: Account<'info, InvitationProposal>,
 
-    //Team Account that user got invited
+    //Team Account that user got invited (must be specified in accounts)
     #[account(
         mut,
-        seeds = ["team".as_bytes(), team.team_name.as_bytes()],
-        bump = team.bump,
+        seeds = ["team".as_bytes(), team_account.team_name.as_bytes()],
+        bump = team_account.bump,
     )]
-    pub team: Account<'info, Team>,
+    pub team_account: Account<'info, Team>,
 
     //Invited User
     #[account(
