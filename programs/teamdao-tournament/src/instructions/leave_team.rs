@@ -34,13 +34,6 @@ pub fn leave_team(ctx: Context<LeaveTeam>) -> Result<()> {
 #[derive(Accounts)]
 pub struct LeaveTeam<'info> {
 
-    //Team of user
-    #[account(
-        mut,
-        seeds = ["team".as_bytes(), team_member.current_team.as_bytes()],
-        bump = team_account.bump,
-    )]
-    pub team_account: Account<'info, Team>,
 
     //Invited User
     #[account(
@@ -49,6 +42,17 @@ pub struct LeaveTeam<'info> {
         bump = team_member.bump,
     )]
     pub team_member: Account<'info, UserAccount>,
+
+    
+    //Team of user
+    #[account(
+        mut,
+        seeds = ["team".as_bytes(), team_member.current_team.as_bytes()],
+        bump = team_account.bump,
+    )]
+    pub team_account: Account<'info, Team>,
+
+    
 
     //Invited User's Sign
     #[account(mut)]

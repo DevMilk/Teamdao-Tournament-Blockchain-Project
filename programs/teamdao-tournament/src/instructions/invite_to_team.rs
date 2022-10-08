@@ -15,15 +15,7 @@ pub fn invite_to_team(ctx: Context<InviteToTeam>, invited_pubkey: Pubkey) -> Res
 #[instruction(invited_pubkey: Pubkey)]
 pub struct InviteToTeam<'info> {
 
-    //Initialization of Team Invitation Proposal
-    #[account(
-        init,
-        payer = signer,
-        seeds = ["invitation-proposal".as_bytes(), invited_pubkey.as_ref(), team_account.key().as_ref()],
-        bump,
-        space = InvitationProposal::LEN
-    )] 
-    pub invitation_proposal: Account<'info, InvitationProposal>,
+    
 
     //Team Authority (Auto)
     #[account(
@@ -32,6 +24,7 @@ pub struct InviteToTeam<'info> {
         bump = team_authority.bump
     )] 
     pub team_authority: Account<'info, UserAccount>,
+
 
     //Team Account
     #[account(
@@ -44,6 +37,15 @@ pub struct InviteToTeam<'info> {
     pub team_account: Account<'info, Team>,
 
     
+    //Initialization of Team Invitation Proposal
+    #[account(
+        init,
+        payer = signer,
+        seeds = ["invitation-proposal".as_bytes(), invited_pubkey.as_ref(), team_account.key().as_ref()],
+        bump,
+        space = InvitationProposal::LEN
+    )] 
+    pub invitation_proposal: Account<'info, InvitationProposal>,
 
     #[account(mut)]
     pub signer: Signer<'info>,

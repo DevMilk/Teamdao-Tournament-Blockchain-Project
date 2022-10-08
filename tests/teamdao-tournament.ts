@@ -47,15 +47,13 @@ describe('teamdao-tournament', () => {
   //Invite user to team
   const inviteToTeam = async(
     teamAuthorityKeypair : anchor.web3.Keypair, 
-    userToInvitePubKey: anchor.web3.PublicKey, 
-    teamPDA: anchor.web3.PublicKey,
-    ): Promise<anchor.web3.PublicKey> => {
+    userToInvitePubKey: anchor.web3.PublicKey
+  ): Promise<anchor.web3.PublicKey> => {
     
     const ix = await program.methods
       .inviteToTeam(userToInvitePubKey)
       .accounts(
         {
-          teamAccount: teamPDA,
           signer: teamAuthorityKeypair.publicKey
         })
       .signers([teamAuthorityKeypair]);
@@ -67,16 +65,15 @@ describe('teamdao-tournament', () => {
 
   //Leave current team
   const leaveCurrentTeam = async(
-    userKeypair: anchor.web3.Keypair,
-    userPDA: anchor.web3.PublicKey
-    ) => {
+    userKeypair: anchor.web3.Keypair
+  ) => {
 
       //const teamPDA = await program.account.team.fetch(await program.account.userAccount.)
       await program.methods
       .leaveTeam()
       .accounts(
         {
-          teamMember: userPDA,
+          //teamMember: userPDA,
           signer: userKeypair.publicKey
         }
       )
@@ -173,7 +170,7 @@ describe('teamdao-tournament', () => {
 
     const teamName = getRandomTeamName();
     const teamPDA = await createTeam(teamCaptain,teamName);
-    await inviteToTeam(teamCaptain,userToInviteKeypair.publicKey,teamPDA);
+    await inviteToTeam(teamCaptain,userToInviteKeypair.publicKey);
 
     await AnswerProposal(userToInviteKeypair,teamPDA,true);
     
@@ -192,7 +189,7 @@ describe('teamdao-tournament', () => {
     const teamData = await program.account.team.fetch(teamPDA);
     const foundMemberBeforeLeave = teamData.members.map(x=>x.toString()).includes(teamCaptain.publicKey.toString());
 
-    await leaveCurrentTeam(teamCaptain, teamCaptainPDA);
+    await leaveCurrentTeam(teamCaptain);
     const isThrowedError = await isThrowsError( program.account.team.fetch(teamPDA ));
     expect(isThrowedError && foundMemberBeforeLeave).to.equal(true);
 
