@@ -37,7 +37,7 @@ pub struct CreateTournamentProposal<'info> {
     #[account(
         init,
         payer = signer,
-        seeds = ["tournament-proposal".as_bytes(), team_account.key().as_ref(), team_account.key().as_ref()],
+        seeds = ["tournament-proposal".as_bytes(), tournament.key().as_ref(), team_account.key().as_ref()],
         bump,
         space = TournamentProposal::LEN
     )] 
