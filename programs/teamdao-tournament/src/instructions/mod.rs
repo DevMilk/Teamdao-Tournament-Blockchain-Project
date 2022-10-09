@@ -5,6 +5,7 @@ pub use invite_to_team::*;
 pub use answer_proposal::*;
 pub use leave_team::*;
 pub use create_tournament::*;
+pub use create_tournament_proposal::*;
 
 pub mod create_user_account;
 pub mod delete_account;
@@ -13,3 +14,5 @@ pub mod invite_to_team;
 pub mod answer_proposal;
 pub mod leave_team;
 pub mod create_tournament;
+pub mod create_tournament_proposal;
+

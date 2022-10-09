@@ -12,7 +12,7 @@ impl Team {
         8 + // discriminator
         32 + // Pubkey
         1 + //bump
-        4 +(32 * 5) + // members limited with 5
-        4 + 30; //team name max 30 character
+        4 +(32 * Constants::MAX_TEAM_MEMBER_COUNT) + // members limited with 5
+        4 + Constants::MAX_TEAM_NAME_LENGTH; //team name max 30 character
     //pub const SEED: &'static[u8; 4] = b"team"; referencing seeds not works :/
 }

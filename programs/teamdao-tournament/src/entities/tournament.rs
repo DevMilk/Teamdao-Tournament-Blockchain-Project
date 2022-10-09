@@ -11,12 +11,12 @@ pub struct Tournament {
     pub manager: Pubkey // tournament creator, prize payer and the one who decides winner 
 }
 impl Tournament {
-    pub const LEN: usize = 
+    pub const CONSTANT_LEN: usize = 
         8 + // discriminator
-        (4+32) + // tournament id
-        (4+30) + //tournament_name
+        (4+16) + // tournament id
+        (4+Constants::MAX_TEAM_NAME_LENGTH) + //tournament_name
         2 +//tournament_reward
-        (4 + (32 * 52)) + // Max participant count is 20.
+        //(4 + (32 * Constants::MAX_PARTICIPANT_COUNT)) + // Max participant count is 20.
         1 + //bump
         8; //manager
 }

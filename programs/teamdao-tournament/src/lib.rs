@@ -37,7 +37,12 @@ pub mod teamdao_tournament {
         return instructions::leave_team::leave_team(ctx);
     }
 
-    pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String,  reward: u16) -> Result<()> {
-        return instructions::create_tournament::create_tournament(ctx, tournament_id, tournament_name, reward );
+    pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String,  reward: u16, max_participant_num: u16) -> Result<()> {
+        return instructions::create_tournament::create_tournament(ctx, tournament_id, tournament_name, reward, max_participant_num );
+    }
+
+    pub fn create_tournament_proposal(ctx: Context<CreateTournamentProposal>) -> Result<()> { 
+        return instructions::create_tournament_proposal::create_tournament_proposal(ctx);
+
     }
 }

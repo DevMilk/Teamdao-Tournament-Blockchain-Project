@@ -19,4 +19,7 @@ pub enum Errors {
 
     #[msg("Non-Authoritzed members cant create tournament participation voting")]
     NonAuthorizedParticipation,
+
+    #[msg("Account balance is not enough to provide tournament rewards")]
+    AccountBalanceNotEnough,
 }
