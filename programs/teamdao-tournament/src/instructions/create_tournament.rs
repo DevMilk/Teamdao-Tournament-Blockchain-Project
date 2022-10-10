@@ -1,15 +1,16 @@
-use crate::{entities::*, errors::Errors, constants::Constants};
+use crate::{entities::*, errors::Errors, constants::Constants, common::Common};
 use anchor_lang::{prelude::*, solana_program::instruction};
 
 pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String, reward: u16, max_participant_num: u16) -> Result<()> {    
 
     let tournament = &mut ctx.accounts.new_tournament;
     
-    //tournament.bump = *ctx.bumps.get("new_tournament").unwrap();
+    tournament.bump = *ctx.bumps.get("new_tournament").unwrap();
     tournament.tournament_id = tournament_id;
     tournament.tournament_name = tournament_name;
     tournament.reward = reward;
     tournament.manager = *ctx.accounts.signer.key;
+    tournament.max_participant_num = max_participant_num;
 
     //Transfer rewards to tournament pda
     let from = &ctx.accounts.signer;
@@ -17,19 +18,6 @@ pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, 
     
     let reward_as_lamport: u64 = (reward as u64) * Constants::LAMPORTS;
     require!(from.to_account_info().lamports() >= reward_as_lamport, Errors::AccountBalanceNotEnough);
-
-    let ix = anchor_lang::solana_program::system_instruction::transfer(
-        &from.key(),
-        &to.key(),
-        reward_as_lamport,
-    );
-    anchor_lang::solana_program::program::invoke(
-        &ix,
-        &[
-            from.to_account_info(),
-            to.to_account_info(),
-        ],
-    ); 
 
     Ok(())
 }
@@ -49,7 +37,7 @@ pub struct CreateTournament<'info> {
     pub new_tournament: Account<'info, Tournament>,
 
     
-    //Signer is the owner of new created account
+    //Tournament founder's sign
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info, System>,

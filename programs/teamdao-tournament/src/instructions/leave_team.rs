@@ -13,8 +13,12 @@ pub fn leave_team(ctx: Context<LeaveTeam>) -> Result<()> {
     let member_key = *signer.key; //Check
     let is_authority = team.authority == member_key;
 
+    //Team owner cant leave team without transfering ownership
+    require!(team.members.len()==1 || is_authority==false, Errors::TeamOwnerCantLeaveTeam);
+
     //Empty leaving member's current team field
     team_member.current_team.clear();
+    team_member.team_addr = None;
 
     //Delete user pubKey from team members
     team.members.retain(|&x| x != member_key);
@@ -23,11 +27,7 @@ pub fn leave_team(ctx: Context<LeaveTeam>) -> Result<()> {
     if team.members.len() == 0 {
         team.close(signer.to_account_info());
     }
-    //If there are other members, assign authority to latest joined
-    else if is_authority {
-        let new_team_authority = &team.members[0];
-        team.authority = *new_team_authority;
-    }
+
     Ok(())
 }
 //constraint =  //User must not be in a team to accept but can be invited

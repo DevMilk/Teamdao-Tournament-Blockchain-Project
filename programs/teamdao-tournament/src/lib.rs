@@ -1,10 +1,12 @@
 use anchor_lang::prelude::*;
 use instructions::*;
 
+
 pub mod instructions;
 pub mod errors;
 pub mod entities;
 pub mod constants;
+pub mod common;
 
 declare_id!("Anm8zfCbBFfZ4sWC3qRX5KKMpFdr7cLHbNGq1EKerACC");
 
@@ -13,6 +15,7 @@ pub mod teamdao_tournament {
 
     use super::*;
 
+    // USER ACCOUNT INSTRUCTIONS
     pub fn create_user_account(ctx: Context<CreateUserAccount>) -> Result<()> {
         return instructions::create_user_account::create_user_account(ctx);
     }
@@ -21,6 +24,7 @@ pub mod teamdao_tournament {
         return instructions::delete_account::delete_account(ctx);
     }
 
+    //TEAM INSTRUCTIONS
     pub fn create_team(ctx: Context<CreateTeam>, team_name: String) -> Result<()> {
         return instructions::create_team::create_team(ctx, team_name);
     }
@@ -36,13 +40,26 @@ pub mod teamdao_tournament {
     pub fn leave_team(ctx: Context<LeaveTeam>) -> Result<()> {
         return instructions::leave_team::leave_team(ctx);
     }
+    pub fn transfer_team_ownership(ctx: Context<TransferTeamOwnership>, new_owner: Pubkey) -> Result<()> {    
+        return instructions::transfer_team_ownership::transfer_team_ownership(ctx, new_owner);
 
-    pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String,  reward: u16, max_participant_num: u16) -> Result<()> {
+    }
+
+    //TOURNAMENT INSTRUCTIONS
+    pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String, reward: u16, max_participant_num: u16) -> Result<()> {
         return instructions::create_tournament::create_tournament(ctx, tournament_id, tournament_name, reward, max_participant_num );
     }
 
-    pub fn create_tournament_proposal(ctx: Context<CreateTournamentProposal>) -> Result<()> { 
-        return instructions::create_tournament_proposal::create_tournament_proposal(ctx);
+    pub fn enter_tournament(ctx: Context<EnterTournament>, participant: Pubkey) -> Result<()> {    
+        return instructions::enter_tournament::enter_tournament(ctx, participant);
+    }
+
+    pub fn vote_tournament_participation(ctx: Context<VoteTournamentParticipation>, answer: bool) -> Result<()> {    
+        return instructions::vote_tournament_participation::vote_tournament_participation(ctx, answer);
+    }
+
+    pub fn give_prize<'a,'b,'c,'info>(ctx: Context<'a,'b,'c,'info, GivePrize<'info>>, participant: Pubkey) -> Result<()> {    
+        return instructions::give_prize::give_prize(ctx, participant);
 
     }
 }

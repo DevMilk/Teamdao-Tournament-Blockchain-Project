@@ -15,7 +15,8 @@ pub fn create_team(ctx: Context<CreateTeam>, team_name: String) -> Result<()> {
     team_data.authority = signer_key;
     team_data.members.push(signer_key);
     founder_user.current_team = team_name.clone();
-
+    founder_user.is_authority = true;
+    founder_user.team_addr = Some(team_data.key());
     Ok(())
 }
 
@@ -28,6 +29,7 @@ pub struct CreateTeam<'info> {
     #[account(
         // Team founder must not be in any team.
         constraint = team_authority.current_team.is_empty() @ Errors::UserAlreadyInATeam,
+        constraint = team_name.len() > Constants::MIN_TEAM_NAME_LENGTH @ Errors::ShortTeamName,
         init, 
         payer = signer, 
         space = Team::LEN, 

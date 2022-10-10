@@ -3,7 +3,7 @@ import { Program } from '@project-serum/anchor'
 import { assert } from 'console'
 import { generateKeyPair, generateKeyPairSync } from 'crypto'
 import { TeamdaoTournament } from '../target/types/teamdao_tournament'
-import { LAMPORTS_PER_SOL} from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, AccountMeta} from "@solana/web3.js";
 import { expect } from 'chai'
 
 const program = anchor.workspace.TeamdaoTournament as Program<TeamdaoTournament>
@@ -46,48 +46,6 @@ const program = anchor.workspace.TeamdaoTournament as Program<TeamdaoTournament>
 
     const tx = await ix.rpc();
     return (await ix.pubkeys()).team; 
-  }
-
-  //generates team for given user account and team name and returns Team PDA
-  const createTournament= async(
-    userKeypair : anchor.web3.Keypair, 
-    tournamentId : string = generateRandomString(0,8),
-    tournamentName: string = generateRandomString(),
-    tournamentReward: number = 5,
-    maxParticipantNum : number = 20,
-    ): Promise<anchor.web3.PublicKey> => {
-
-
-    const ix = await program.methods
-      .createTournament(tournamentId, tournamentName, tournamentReward,maxParticipantNum)
-      .accounts(
-        {
-          signer: userKeypair.publicKey
-        })
-      .signers([userKeypair]);
-
-    const tx = await ix.rpc();
-    return (await ix.pubkeys()).newTournament; 
-  }
-
-  //generates team for given user account and team name and returns Team PDA
-  const createTournamentProposal= async(
-    teamAuthorityKeypair : anchor.web3.Keypair, 
-    tournamentPDA : anchor.web3.PublicKey,
-    ): Promise<anchor.web3.PublicKey> => {
-
-
-    const ix = await program.methods
-      .createTournamentProposal()
-      .accounts(
-        {
-          tournament: tournamentPDA,
-          signer: teamAuthorityKeypair.publicKey
-        })
-      .signers([teamAuthorityKeypair]);
-
-    const tx = await ix.rpc();
-    return (await ix.pubkeys()).tournamentProposal; 
   }
 
   //Invite user to team
@@ -137,9 +95,9 @@ const program = anchor.workspace.TeamdaoTournament as Program<TeamdaoTournament>
           signer: invited.publicKey
         })
       .signers([invited]);
-
     const tx = await ix.rpc();
   }
+
   //test function that tests if given async function throws error or not
   const isThrowsError = async<T>(func: Promise<T>) =>{
     
@@ -154,13 +112,119 @@ const program = anchor.workspace.TeamdaoTournament as Program<TeamdaoTournament>
     return isThrowedError;
   }
 
+  //transfers team ownership
+  const transferTeamOwnership = async(
+    currentOwner : anchor.web3.Keypair, 
+    newOwner: anchor.web3.PublicKey
+  ): Promise<anchor.web3.PublicKey> => {
+    const ix = await program.methods
+      .transferTeamOwnership(newOwner)
+      .accounts(
+        {
+          signer: currentOwner.publicKey
+        })
+      .signers([currentOwner]);
 
-  //generates random names for team
+    const tx = await ix.rpc();
+    return (await ix.pubkeys()).team; 
+  }
+
+  //generates team for given user account and team name and returns Team PDA
+  const createTournament= async(
+    userKeypair : anchor.web3.Keypair, 
+    tournamentId : string = generateRandomString(0,8),
+    tournamentName: string = generateRandomString(),
+    tournamentReward: number = 5,
+    maxParticipantNum : number = 20,
+    ): Promise<anchor.web3.PublicKey> => {
+
+
+    const ix = await program.methods
+      .createTournament(tournamentId, tournamentName, tournamentReward,maxParticipantNum)
+      .accounts(
+        {
+          signer: userKeypair.publicKey
+        })
+      .signers([userKeypair]);
+
+    const tx = await ix.rpc();
+    return (await ix.pubkeys()).newTournament; 
+  }
+
+  //generates a voting proposal to enter tournament or not
+  const enterTournament= async(
+    teamAuthorityKeypair : anchor.web3.Keypair, 
+    tournamentPDA : anchor.web3.PublicKey,
+    teamPDAOrIndividual: anchor.web3.PublicKey
+    ): Promise<anchor.web3.PublicKey> => {
+
+    const ix = await program.methods
+      .enterTournament(teamPDAOrIndividual)
+      .accounts(
+        {
+          tournament: tournamentPDA,
+          signer: teamAuthorityKeypair.publicKey
+        })
+      .signers([teamAuthorityKeypair]);
+
+    const tx = await ix.rpc();
+    return (await ix.pubkeys()).tournamentParticipationData; 
+  }
+
+  const voteTournamentParticipation= async(
+    indvidualOrTeamAuthorityKeypair : anchor.web3.Keypair, 
+    tournamentPDA : anchor.web3.PublicKey,
+    answer: boolean
+    ): Promise<anchor.web3.PublicKey> => {
+
+    const ix = await program.methods
+      .voteTournamentParticipation(answer)
+      .accounts(
+        {
+          tournament: tournamentPDA,
+          signer: indvidualOrTeamAuthorityKeypair.publicKey
+        })
+      .signers([indvidualOrTeamAuthorityKeypair]);
+
+    const tx = await ix.rpc();
+    return (await ix.pubkeys()).tournamentParticipationData; 
+  }
+
+  const givePrize= async(
+    tournamentManager : anchor.web3.Keypair, 
+    winnerIndividualOrTeam : anchor.web3.PublicKey,
+    tournamentPDA: anchor.web3.PublicKey
+    ): Promise<anchor.web3.PublicKey> => {
+      
+
+    const team = await program.account.team.fetchNullable(winnerIndividualOrTeam).catch(err=>undefined);
+    const winnerAccounts = team ? team.members : [winnerIndividualOrTeam]; 
+    const winnerAccountInfos = winnerAccounts
+      .map(account=> {
+        const meta: AccountMeta = {pubkey: account, isWritable: true, isSigner: false}
+        return meta;
+      }
+    );
+    console.log(winnerAccountInfos);
+    const ix = await program.methods
+      .givePrize(winnerIndividualOrTeam)
+      .accounts(
+        {
+          tournament: tournamentPDA,
+          signer: tournamentManager.publicKey
+        })
+      .remainingAccounts(winnerAccountInfos)
+      .signers([tournamentManager]);
+
+    const tx = await ix.rpc();
+    return (await ix.pubkeys()).tournamentParticipationData; 
+  }
+  //generates random string (for random team name, tournament name etc.)
   const generateRandomString = (start = 2, end = 8) : string => 
     Math.random().toString(36).slice(start,end);
 
   //#endregion
-  
+  /*
 describe('teamdao-tournament', () => {
   
   //TESTS
@@ -202,9 +266,10 @@ describe('teamdao-tournament', () => {
       teamPDA
     )
     expect(team.authority == userKeypair.publicKey);
+
   })
 
-  it('Throws error if user creats new team if user is already a team member', async () => {
+  it('Throws error if user creates new team if user is already a team member', async () => {
     const [userKeypair, userAccountPDA] = await generateUserAccount();
     const teamName = generateRandomString();
     await createTeam(userKeypair,teamName);
@@ -214,20 +279,24 @@ describe('teamdao-tournament', () => {
 
   })
   
-  it('Can allow user to invite to team and invited user gets to the team if accepts', async () => {
+  it('Can allow user to invite to team, invited member can join the team, team owner can transfer ownership', async () => {
     const [teamCaptain, teamCaptainPDA] = await generateUserAccount();
     const [userToInviteKeypair, __] = await generateUserAccount();
 
     const teamName = generateRandomString();
     const teamPDA = await createTeam(teamCaptain,teamName);
+
+
     await inviteToTeam(teamCaptain,userToInviteKeypair.publicKey);
-
     await AnswerProposal(userToInviteKeypair,teamPDA,true);
-    
-    const teamData = await program.account.team.fetch(teamPDA);
-    const foundMember = teamData.members.includes(userToInviteKeypair.publicKey);
+    await transferTeamOwnership(teamCaptain, userToInviteKeypair.publicKey);
 
-    expect(foundMember).to.not.equal(true);
+    const teamData = await program.account.team.fetch(teamPDA);
+    const foundMember = teamData.members.map(x=>x.toString()).includes(userToInviteKeypair.publicKey.toString());
+
+    expect(foundMember).to.equal(true);
+    expect(teamData.authority.toString()).to.equal(userToInviteKeypair.publicKey.toString());
+
   })
 
   it('Can allow user to leave from team and if there is no member left then close team', async () => {
@@ -245,8 +314,17 @@ describe('teamdao-tournament', () => {
 
   })
 
-  it('Can create a tournament', async () => {
-    const [founder, _] = await generateUserAccount();
+  
+
+
+})
+*/
+describe("Tournament Test", ()=> {
+
+  it('Create tournament, get participants, select winner by distributing prize', async () => {
+    
+    //CREATE TOURNAMENT
+    const [tournamentManager, _] = await generateUserAccount();
 
     //Parameters
     const tournamentId = generateRandomString(0,8);
@@ -254,31 +332,58 @@ describe('teamdao-tournament', () => {
     const tournamentRewardAsSOL = 10;
     const maxParticipantNum = 10;
 
-    //Get created tournament
-    const tournamentPDA = await createTournament(founder, tournamentId, tournamentName, tournamentRewardAsSOL,maxParticipantNum);
 
-    //Asset
+    //Get created tournament
+    const tournamentPDA = await createTournament(tournamentManager, tournamentId, tournamentName, tournamentRewardAsSOL,maxParticipantNum);
+
+
+    //CHECK: if tournamentData created correctly
     const tournamentData = await program.account.tournament.fetch(tournamentPDA);
     expect(tournamentData.tournamentId).to.equal(tournamentId);
     expect(tournamentData.tournamentName).to.equal(tournamentName);
     expect(tournamentData.reward).to.equal(tournamentRewardAsSOL);
-    expect(tournamentData.manager.toString()).to.equal(founder.publicKey.toString());
-  })
+    expect(tournamentData.manager.toString()).to.equal(tournamentManager.publicKey.toString());
 
-  it('Can create a tournament proposal', async () => {
-    const [founder, _] = await generateUserAccount();
-    const [teamCap, __] = await generateUserAccount();
-
+    //---CREATE TEAM PARTICIPANTS---
+    const [teamCap, ll] = await generateUserAccount();
+    const [teamMember, ___] = await generateUserAccount();
     //Get created tournament with default parameters
-    const tournamentPDA = await createTournament(founder);
-    await createTeam(teamCap);
+    const teamPDA = await createTeam(teamCap);    
+    await inviteToTeam(teamCap,teamMember.publicKey);
+    await AnswerProposal(teamMember,teamPDA, true);
 
-    const tournamentProposalPDA = await createTournamentProposal(teamCap, tournamentPDA);
+    //---CREATE INDIVIDUAL PARTICIPANT---
+    const [individualParticipant, l] = await generateUserAccount();
 
-    const err = await isThrowsError(
-      program.account.tournamentProposal.fetch(tournamentProposalPDA)
-    );
-    expect(err).to.equal(false);
 
+    //---TOURNAMENT ENTRANCE---
+
+    //Entering as a team
+    const tournamentProposalPDA = await enterTournament(teamCap, tournamentPDA, teamPDA);
+    await voteTournamentParticipation(teamCap, tournamentPDA, true);
+    await voteTournamentParticipation(teamMember, tournamentPDA, true);
+
+    //Entering as Individual
+    await enterTournament(individualParticipant, tournamentPDA, individualParticipant.publicKey);
+
+
+    const tournament = await program.account.tournament.fetch(tournamentPDA);
+    const tournamentParticipantList = tournament.participants.map(participant => participant.toString());
+    //CHECK: Is team registered in tournament?
+    const isTeamInTournament = tournamentParticipantList.includes(teamPDA.toString());
+    expect(isTeamInTournament).to.be.equal(true);
+    
+    //CHECK: Is individual player registered in tournament?
+    const isIndividualInTournament = tournamentParticipantList.includes(individualParticipant.publicKey.toString());
+    expect(isIndividualInTournament).to.be.equal(true);
+
+    const balanceBeforePrize = await program.provider.connection.getBalance(individualParticipant.publicKey);
+    await givePrize(tournamentManager, individualParticipant.publicKey, tournamentPDA);
+    const balanceAfterPrize = await program.provider.connection.getBalance(individualParticipant.publicKey);
+    console.log(balanceBeforePrize, balanceAfterPrize)
+    expect(balanceBeforePrize).to.equal(balanceAfterPrize - tournamentRewardAsSOL * LAMPORTS_PER_SOL);
+    
   })
+
+
 })

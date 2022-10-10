@@ -1,3 +1,5 @@
+
+
 use crate::entities::*;
 use crate::errors::*;
 use anchor_lang::prelude::*;
@@ -14,8 +16,6 @@ pub fn invite_to_team(ctx: Context<InviteToTeam>, invited_pubkey: Pubkey) -> Res
 #[derive(Accounts)]
 #[instruction(invited_pubkey: Pubkey)]
 pub struct InviteToTeam<'info> {
-
-    
 
     //Team Authority (Auto)
     #[account(

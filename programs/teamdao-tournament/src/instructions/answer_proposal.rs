@@ -13,6 +13,7 @@ pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()>
         //If user rejects invitation we dont need to check the capacity
         require!(team.members.len() < Constants::MAX_TEAM_MEMBER_COUNT, Errors::TeamCapacityNotEnough); 
         invited.current_team = team.team_name.clone();
+        invited.team_addr = Some(team.key());
         team.members.push(*ctx.accounts.signer.key);
     }
     
