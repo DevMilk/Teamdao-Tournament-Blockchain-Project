@@ -1,6 +1,7 @@
 [features]
 seeds = true
 skip-lint = false
+
 [programs.localnet]
 teamdao_tournament = "Anm8zfCbBFfZ4sWC3qRX5KKMpFdr7cLHbNGq1EKerACC"
 

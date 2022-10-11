@@ -46,7 +46,7 @@ pub mod teamdao_tournament {
     }
 
     //TOURNAMENT INSTRUCTIONS
-    pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String, reward: u16, max_participant_num: u16) -> Result<()> {
+    pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String, reward: u64, max_participant_num: u16) -> Result<()> {
         return instructions::create_tournament::create_tournament(ctx, tournament_id, tournament_name, reward, max_participant_num );
     }
 
@@ -60,6 +60,15 @@ pub mod teamdao_tournament {
 
     pub fn give_prize<'a,'b,'c,'info>(ctx: Context<'a,'b,'c,'info, GivePrize<'info>>, participant: Pubkey) -> Result<()> {    
         return instructions::give_prize::give_prize(ctx, participant);
+    }
 
+    pub fn create_prize_distribution(ctx: Context<CreatePrizeDistribution>, 
+        tournament_key: Pubkey, distribution: Vec<f32>, id:String ) -> Result<()> {  
+            return instructions::create_prize_distribution::create_prize_distribution(ctx, tournament_key, distribution, id);
+    }
+
+    pub fn vote_prize_distribution(ctx: Context<VotePrizeDistribution>, 
+        answer: bool, tournament: Pubkey) -> Result<()> {  
+            return instructions::vote_prize_distribution::vote_prize_distribution(ctx, answer, tournament);
     }
 }

@@ -1,7 +1,7 @@
 use crate::{entities::*, errors::Errors, constants::Constants, common::Common};
 use anchor_lang::{prelude::*, solana_program::instruction};
 
-pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String, reward: u16, max_participant_num: u16) -> Result<()> {    
+pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String, reward: u64, max_participant_num: u16) -> Result<()> {    
 
     let tournament = &mut ctx.accounts.new_tournament;
     
@@ -11,13 +11,6 @@ pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, 
     tournament.reward = reward;
     tournament.manager = *ctx.accounts.signer.key;
     tournament.max_participant_num = max_participant_num;
-
-    //Transfer rewards to tournament pda
-    let from = &ctx.accounts.signer;
-    let to = tournament;
-    
-    let reward_as_lamport: u64 = (reward as u64) * Constants::LAMPORTS;
-    require!(from.to_account_info().lamports() >= reward_as_lamport, Errors::AccountBalanceNotEnough);
 
     Ok(())
 }

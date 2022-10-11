@@ -45,5 +45,17 @@ pub enum Errors {
     NoAccountGiven,
 
     #[msg("Participant Parameter is not valid for signer or signer's team account")]
-    ParticipantParameterInvalid
+    ParticipantParameterInvalid,
+
+    #[msg("User not a participant in tournament")]
+    ParticipantNotFound,
+
+    #[msg("Sum of prize distribution must be equal to 1")]
+    InvalidPrizeDistribution,
+
+    #[msg("Prize distribution id string must be equal to prize distribution")]
+    InvalidPrizeDistributionId,
+
+    #[msg("Only team authority can create voting")]
+    NonAuthorizedVotingCreation,
 }

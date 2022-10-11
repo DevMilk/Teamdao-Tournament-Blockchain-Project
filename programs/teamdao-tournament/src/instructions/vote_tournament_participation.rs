@@ -6,7 +6,7 @@ use anchor_lang::AccountsClose;
 
 pub fn vote_tournament_participation(ctx: Context<VoteTournamentParticipation>, answer: bool) -> Result<()> {    
     // setting userdata in user's account
-    let proposal = &mut ctx.accounts.tournament_participation_data;
+    let participation = &mut ctx.accounts.tournament_participation_data;
     let team = &mut ctx.accounts.team_account;
     let tournament = &mut ctx.accounts.tournament;
     let team_owner = &mut ctx.accounts.signer;
@@ -16,23 +16,24 @@ pub fn vote_tournament_participation(ctx: Context<VoteTournamentParticipation>, 
 
     //If tournament is full, then close the proposal and return error
     if !tournament.check_entrance_availability() {
-        proposal.close(team_owner.to_account_info());
+        participation.close(team_owner.to_account_info());
         return Err(Errors::TournamentCapacityFull.into());
     }
 
-    proposal.total_votes += 1;
-    proposal.ok_votes += if answer == true {1} else {0};
+    participation.total_votes += 1;
+    participation.ok_votes += if answer == true {1} else {0};
     
     //Check if voting is done (i am not closing proposal to prevent duplicates amongs tournament participants)
-    if proposal.total_votes as usize == team.members.len() && 3 * proposal.ok_votes >= 2 * proposal.total_votes {
+    if 3 * participation.ok_votes as usize >= 2 * team.members.len() {
         //If majority is at least 2/3 of team then it is ok to enter the tournament
 
         let tournament = &mut ctx.accounts.tournament;
 
-        proposal.members = team.members.clone();
-        msg!(team.key().to_string().as_str());
-        msg!(team.to_account_info().key().to_string().as_str());
+        participation.members = team.members.clone();
+        let equal_percentage = 1.0 / (team.members.len() as f32);
+        participation.prize_distribution = vec![equal_percentage; team.members.len()];
         tournament.participants.push(team.key());
+        participation.is_entered = true;
     }
 
     Ok(())
@@ -68,7 +69,7 @@ pub struct VoteTournamentParticipation<'info> {
             //If it is individual (non-team member) then pass its pubkey if it is not then pass team_addr
             team_account.key().as_ref()
         ],
-        bump,
+        bump = tournament_participation_data.bump,
     )]
     pub tournament_participation_data: Account<'info, TournamentParticipation>,
 

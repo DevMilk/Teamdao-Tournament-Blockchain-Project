@@ -1,6 +1,6 @@
 use crate::{entities::*, errors::Errors, constants::Constants, common::Common};
 use anchor_lang::{prelude::*, AccountsClose, solana_program::{instruction, blake3::Hash}};
-use std::{collections::HashMap, borrow::Borrow};
+use std::{collections::{BTreeMap}, borrow::Borrow};
 /* 
 Accountlar Çoklu olarak nasıl gelecek?
 her kullanıcı için Withdraw hesabı yapılsın mı yoksa tournament_participant_data'da mı dursun?
@@ -11,16 +11,16 @@ heam team_name hem pubkey tutalım?
 address = */
 
 pub fn give_prize<'a,'b,'c,'info>(ctx: Context<'a,'b,'c,'info, GivePrize<'info>>, participant: Pubkey) -> Result<()> {    
-
-    msg!("1");
     
     let tournament = &ctx.accounts.tournament;
     let participation_data =&ctx.accounts.tournament_participation_data;
-
+    let team_manager = &ctx.accounts.signer;
     require!(ctx.remaining_accounts.len()>0, Errors::NoAccountGiven);
     
     let is_individual = ctx.remaining_accounts.len()==1;
     
+    require!(team_manager.to_account_info().lamports() >= tournament.reward, Errors::AccountBalanceNotEnough);
+
     if is_individual {
         let winner = &ctx.remaining_accounts[0];
         require!(
@@ -28,40 +28,38 @@ pub fn give_prize<'a,'b,'c,'info>(ctx: Context<'a,'b,'c,'info, GivePrize<'info>>
             Errors::GivenAccountNotMatchesWithTournamentParticipationData
         );        
         Common::transfer(
-            &ctx.accounts.signer, 
+            team_manager, 
             winner, 
-            (tournament.reward as u64) * Constants::LAMPORTS
+            tournament.reward
         )//reward as sol
     }
     else {
-        msg!("2");
-        let mut prize_distribution_map: HashMap<&Pubkey, u8> = HashMap::new();
-        for (index, member) in participation_data.members.iter().enumerate() {
-            prize_distribution_map.insert(member, participation_data.prize_distribution[index]);
-        }
+        let mut prize_distribution_map: BTreeMap<&Pubkey, f32> = BTreeMap::new();
         
+        for i in 0..participation_data.members.len() {
+            prize_distribution_map.insert(
+                &participation_data.members[i], 
+                participation_data.prize_distribution[i]
+            );
+        }
         require!(ctx.remaining_accounts.iter().all(|member| 
             prize_distribution_map.contains_key(&member.key())), 
             Errors::GivenAccountNotMatchesWithTournamentParticipationData
         );
         
-        msg!("3");
+        
         ctx.remaining_accounts.iter().for_each(|team_member| {
-            msg!("4");
             let account_info = team_member;
-            let prize_rate = match prize_distribution_map.get(account_info.key) {
-                Some(prize_rate) => *prize_rate,
-                None => 0
-            };
-            msg!("5");
-            if prize_rate != 0 {
+            let prize_rate_as_percent = prize_distribution_map.get(account_info.key).unwrap_or(&0.0);
 
-                let prize_of_member = (prize_rate as u64) * Constants::LAMPORTS / 100;
+            
+            if *prize_rate_as_percent != 0.0
+             {
 
                 Common::transfer(
                     &ctx.accounts.signer, 
                     team_member, 
-                    (tournament.reward as u64) * Constants::LAMPORTS
+                    (*prize_rate_as_percent * (tournament.reward as f32)) as u64,
                 )
 
             }

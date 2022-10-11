@@ -9,6 +9,8 @@ pub use transfer_team_ownership::*;
 pub use vote_tournament_participation::*;
 pub use enter_tournament::*;
 pub use give_prize::*;
+pub use vote_prize_distribution::*;
+pub use create_prize_distribution::*;
 
 pub mod create_user_account;
 pub mod delete_account;
@@ -21,6 +23,8 @@ pub mod transfer_team_ownership;
 pub mod vote_tournament_participation;
 pub mod enter_tournament;
 pub mod give_prize;
+pub mod vote_prize_distribution;
+pub mod create_prize_distribution;
 
 
 

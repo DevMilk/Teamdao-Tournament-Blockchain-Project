@@ -48,9 +48,9 @@ pub struct AnswerProposal<'info> {
         seeds = ["invitation-proposal".as_bytes(), signer.key().as_ref(), team_account.key().as_ref()], 
         bump = invitation_proposal.bump,
         constraint = invited.current_team.is_empty() @ Errors::UserAlreadyInATeam,
-        close = signer
+        close = signer //Closed the proposal so if user leaves team, closing this will allow user to get invitation again.
     )]
-    pub invitation_proposal: Account<'info, InvitationProposal>,
+    pub invitation_proposal: Account<'info, VoteRecord>,
 
     //Invited User's Sign
     #[account(mut)]
