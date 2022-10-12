@@ -4,7 +4,7 @@ use crate::constants::Constants;
 use anchor_lang::prelude::*;
 
 pub fn answer_proposal(ctx: Context<AnswerProposal>, answer: bool) -> Result<()> {    
-    // setting userdata in user's account
+
     let team = &mut ctx.accounts.team_account;
     let invited = &mut ctx.accounts.invited;
     

@@ -1,5 +1,3 @@
-use std::fmt::Error;
-
 use crate::{entities::*, errors::Errors};
 use anchor_lang::prelude::*;
 use anchor_lang::AccountsClose;
@@ -84,7 +82,7 @@ pub struct VoteTournamentParticipation<'info> {
     pub vote_record: Account<'info, VoteRecord>,
 
     #[account(mut)] 
-    pub tournament: Account<'info, Tournament>,
+    pub tournament: Box<Account<'info, Tournament>>,
     //Signer must be team authority
     #[account(mut)]
     pub signer: Signer<'info>,

@@ -1,13 +1,13 @@
 use crate::entities::*;
 use crate::errors::*;
-use crate::constants::Constants;
 use anchor_lang::prelude::*;
 
 pub fn transfer_team_ownership(ctx: Context<TransferTeamOwnership>, new_owner: Pubkey) -> Result<()> {    
 
     let team_data = &mut ctx.accounts.team;
     let new_owner_user = &mut ctx.accounts.new_owner_user;
-    //Given user must be a member of the team
+
+    //Check if given user is member of the team or not
     require!(new_owner_user.current_team == team_data.team_name, Errors::UserNotInTeam);
 
     new_owner_user.is_authority = true;

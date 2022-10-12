@@ -17,10 +17,10 @@ impl Tournament {
         (4+16) + // tournament id
         (4+Constants::MAX_TEAM_NAME_LENGTH) + //tournament_name
         8 +//tournament_reward
-        //(4 + (32 * Constants::MAX_PARTICIPANT_COUNT)) + // Max participant count is 20.
+        //participant size varies on the participants 
         1 + //bump
-        8 +
-        2; //manager
+        8 + //manager pubkey
+        2; //max_participant_num
     pub fn check_entrance_availability(&self) -> bool {
         return self.participants.len() < self.max_participant_num as usize;
     }

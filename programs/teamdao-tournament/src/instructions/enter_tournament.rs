@@ -1,5 +1,5 @@
 use crate::{entities::*, errors::Errors};
-use anchor_lang::{prelude::*, solana_program::instruction};
+use anchor_lang::{prelude::*};
 
 pub fn enter_tournament(ctx: Context<EnterTournament>, participant: Pubkey) -> Result<()> {    
 
@@ -40,14 +40,14 @@ pub fn enter_tournament(ctx: Context<EnterTournament>, participant: Pubkey) -> R
 #[instruction(participant: Pubkey)]
 pub struct EnterTournament<'info> {
 
-    //Initilization of the tournament account
+    //Tournament to join
     #[account(
         mut,
         constraint = tournament.check_entrance_availability() @ Errors::TournamentCapacityFull
     )] 
-    pub tournament: Account<'info, Tournament>,
+    pub tournament: Box<Account<'info, Tournament>>,
 
-    //takım için vote_tournament_proposal'da yapılması zorunlu.
+    //tournament_participation data
     #[account(
         init,
         space = TournamentParticipation::LEN,
@@ -68,6 +68,7 @@ pub struct EnterTournament<'info> {
         mut,
         seeds = ["user-account".as_bytes(), signer.key().as_ref()], 
         bump = user_account.bump,
+        constraint = user_account.team_addr == None || user_account.is_authority @ Errors::NonAuthorizedParticipation
     )]
     pub user_account: Account<'info, UserAccount>,
 

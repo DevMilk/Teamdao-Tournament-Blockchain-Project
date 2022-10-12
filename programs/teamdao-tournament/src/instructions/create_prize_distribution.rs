@@ -1,15 +1,10 @@
-use std::borrow::Borrow;
-use std::str::Bytes;
-
 use crate::entities::*;
 use crate::errors::*;
-use crate::constants::Constants;
-use anchor_lang::AccountsClose;
 use anchor_lang::prelude::*;
 
 
 
-pub fn create_prize_distribution(ctx: Context<CreatePrizeDistribution>, tournament_key: Pubkey, distribution: Vec<f32>, id: String) -> Result<()> {    
+pub fn create_prize_distribution(ctx: Context<CreatePrizeDistribution>, _tournament_key: Pubkey, distribution: Vec<f32>, _id: String) -> Result<()> {    
     //Check distribution is valid
     require!(distribution.iter().sum::<f32>() == 1.0, Errors::InvalidPrizeDistribution);
 
@@ -72,7 +67,7 @@ pub struct CreatePrizeDistribution<'info> {
     )]
     pub distribution_voting: Account<'info, DistributionVoting>,
 
-    //Invited User's Sign
+    //Team owner's sign
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info, System>,

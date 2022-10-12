@@ -1,12 +1,11 @@
 use crate::entities::*;
 use crate::errors::*;
-use crate::constants::Constants;
 use anchor_lang::AccountsClose;
 use anchor_lang::prelude::*;
 
 
 pub fn vote_prize_distribution(ctx: Context<VotePrizeDistribution>, 
-    answer: bool, tournament: Pubkey) -> Result<()> {    
+    answer: bool, _tournament: Pubkey) -> Result<()> {    
 
 
     let voting = &mut ctx.accounts.distribution_voting;

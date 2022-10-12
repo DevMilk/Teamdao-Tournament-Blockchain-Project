@@ -24,6 +24,7 @@ pub mod teamdao_tournament {
         return instructions::delete_account::delete_account(ctx);
     }
 
+
     //TEAM INSTRUCTIONS
     pub fn create_team(ctx: Context<CreateTeam>, team_name: String) -> Result<()> {
         return instructions::create_team::create_team(ctx, team_name);
@@ -45,6 +46,7 @@ pub mod teamdao_tournament {
 
     }
 
+    
     //TOURNAMENT INSTRUCTIONS
     pub fn create_tournament(ctx: Context<CreateTournament>, tournament_id: String, tournament_name: String, reward: u64, max_participant_num: u16) -> Result<()> {
         return instructions::create_tournament::create_tournament(ctx, tournament_id, tournament_name, reward, max_participant_num );

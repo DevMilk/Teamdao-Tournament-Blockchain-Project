@@ -10,10 +10,13 @@ pub fn create_team(ctx: Context<CreateTeam>, team_name: String) -> Result<()> {
 
     let signer_key = *ctx.accounts.signer.key;
 
+    //Update team data
     team_data.team_name = team_name.clone();
     team_data.bump = *ctx.bumps.get("team").unwrap();
     team_data.authority = signer_key;
     team_data.members.push(signer_key);
+    
+    //Update founder data
     founder_user.current_team = team_name.clone();
     founder_user.is_authority = true;
     founder_user.team_addr = Some(team_data.key());
@@ -29,7 +32,9 @@ pub struct CreateTeam<'info> {
     #[account(
         // Team founder must not be in any team.
         constraint = team_authority.current_team.is_empty() @ Errors::UserAlreadyInATeam,
+        //Check team name
         constraint = team_name.len() > Constants::MIN_TEAM_NAME_LENGTH @ Errors::ShortTeamName,
+        constraint = team_name.len() < Constants::MAX_TEAM_NAME_LENGTH @ Errors::LongTeamName,
         init, 
         payer = signer, 
         space = Team::LEN, 
@@ -38,7 +43,7 @@ pub struct CreateTeam<'info> {
     )] 
     pub team: Account<'info, Team>,
 
-    //Team Authority
+    //Team founder's user account
     #[account(
         mut,
         seeds = ["user-account".as_bytes(), signer.key().as_ref()], 
@@ -46,7 +51,7 @@ pub struct CreateTeam<'info> {
     )]
     pub team_authority: Account<'info, UserAccount>,
     
-
+    //Signer is the one that creates team
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info, System>,

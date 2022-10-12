@@ -4,7 +4,7 @@ use crate::entities::*;
 use crate::errors::*;
 use anchor_lang::prelude::*;
 
-pub fn invite_to_team(ctx: Context<InviteToTeam>, invited_pubkey: Pubkey) -> Result<()> {    
+pub fn invite_to_team(ctx: Context<InviteToTeam>, _invited_pubkey: Pubkey) -> Result<()> {    
     // setting userdata in user's account
     let proposal = &mut ctx.accounts.invitation_proposal;
 
@@ -25,7 +25,7 @@ pub struct InviteToTeam<'info> {
     )] 
     pub team_authority: Account<'info, UserAccount>,
 
-
+    
     //Team Account
     #[account(
         mut, 
@@ -36,6 +36,14 @@ pub struct InviteToTeam<'info> {
     )]
     pub team_account: Account<'info, Team>,
 
+    //Team Authority (Auto)
+    #[account(
+        mut,
+        seeds = ["user-account".as_bytes(), invited_pubkey.as_ref()],
+        bump = invited.bump,
+        constraint = invited.current_team != team_account.team_name
+    )] 
+    pub invited: Account<'info, UserAccount>,
     
     //Initialization of Team Invitation Proposal
     #[account(

@@ -1,8 +1,7 @@
-pub mod Common {
-    use anchor_lang::{prelude::{AccountInfo, Signer}, ToAccountInfo, solana_program::msg};
-    use crate::constants::Constants;
+pub mod common {
+    use anchor_lang::{prelude::{AccountInfo, Signer}, ToAccountInfo};
 
-    pub fn transfer<'a>(from: &Signer<'a>, to: &AccountInfo<'a>, reward_as_lamport: u64){
+    pub fn transfer_from_signer<'a>(from: &Signer<'a>, to: &AccountInfo<'a>, reward_as_lamport: u64){
 
         let ix = anchor_lang::solana_program::system_instruction::transfer(
             from.key,
@@ -16,6 +15,13 @@ pub mod Common {
                 to.to_account_info()
             ],
         ); 
+    }
+
+    pub fn transfer<'a>(from: &AccountInfo<'a>, to: &AccountInfo<'a>, reward_as_lamport: u64) -> anchor_lang::solana_program::entrypoint::ProgramResult{
+
+        **from.try_borrow_mut_lamports()? -= reward_as_lamport;
+        **to.try_borrow_mut_lamports()? += reward_as_lamport;
+        Ok(())
     }
         
 }

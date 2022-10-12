@@ -1,9 +1,7 @@
-use crate::entities::user_account::*;
+use crate::{entities::user_account::*, errors::Errors};
 use anchor_lang::prelude::*;
 
-pub fn delete_account(ctx: Context<DeleteAccount>) -> Result<()> {
-    msg!("Account Closed successfully");
-    msg!(&ctx.accounts.user_account.bump.to_string());
+pub fn delete_account(_ctx: Context<DeleteAccount>) -> Result<()> {
     Ok(())
 }
 
@@ -15,6 +13,7 @@ pub struct DeleteAccount<'info> {
         mut,
         seeds = ["user-account".as_bytes(), signer.key().as_ref()], 
         bump = user_account.bump,
+        constraint = user_account.current_team.is_empty() @ Errors::TeamMembersCantDeleteTheirAccountWithoutLeavingTeam,
         close=signer
     )]
     pub user_account: Account<'info, UserAccount>,

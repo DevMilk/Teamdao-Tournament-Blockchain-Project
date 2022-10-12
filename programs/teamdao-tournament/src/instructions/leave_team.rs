@@ -33,8 +33,6 @@ pub fn leave_team(ctx: Context<LeaveTeam>) -> Result<()> {
 //constraint =  //User must not be in a team to accept but can be invited
 #[derive(Accounts)]
 pub struct LeaveTeam<'info> {
-
-
     //Invited User
     #[account(
         mut,

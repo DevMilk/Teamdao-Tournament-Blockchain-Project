@@ -14,11 +14,11 @@ pub struct TournamentParticipation {
 impl TournamentParticipation {
     pub const LEN: usize = 
         8 +// discriminator
-        1 +
-        2 +
-        2 +
+        1 + //bump 
+        2 + //ok_votes
+        2 + //total_Votes
         (4 + (4 * Constants::MAX_TEAM_MEMBER_COUNT))+//prize_distribution
         (4 + (32 * Constants::MAX_TEAM_MEMBER_COUNT))+//members
-        1;
+        1; //is entered the tournament
 
 }

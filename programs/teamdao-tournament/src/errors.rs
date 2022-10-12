@@ -41,6 +41,9 @@ pub enum Errors {
     #[msg("Minimum team name length must be at least 5")]
     ShortTeamName,
 
+    #[msg("Team name is too long")]
+    LongTeamName,
+
     #[msg("Accounts must be given on remaining account")]
     NoAccountGiven,
 
@@ -58,4 +61,10 @@ pub enum Errors {
 
     #[msg("Only team authority can create voting")]
     NonAuthorizedVotingCreation,
+
+    #[msg("Given team is not in tournament")]
+    TeamNotInTournament,
+
+    #[msg("Team members cant delte their account without leaving team")]
+    TeamMembersCantDeleteTheirAccountWithoutLeavingTeam
 }

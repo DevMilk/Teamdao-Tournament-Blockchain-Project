@@ -10,7 +10,8 @@ pub struct DistributionVoting {
 impl DistributionVoting {
     pub const CONSTANT_LEN: usize = 
         8 + // discriminator
-        1 +
-        1 +
-        1;
+        1 + //bump
+        1 + //ok_votes
+        1; //total_cotes
+        //prize distribution varies depending on the participant member count
 }
