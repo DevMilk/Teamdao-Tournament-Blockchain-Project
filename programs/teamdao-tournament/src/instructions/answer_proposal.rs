@@ -50,7 +50,7 @@ pub struct AnswerProposal<'info> {
         constraint = invited.current_team.is_empty() @ Errors::UserAlreadyInATeam,
         close = signer //Closed the proposal so if user leaves team, closing this will allow user to get invitation again.
     )]
-    pub invitation_proposal: Account<'info, VoteRecord>,
+    pub invitation_proposal: Account<'info, Record>,
 
     //Invited User's Sign
     #[account(mut)]

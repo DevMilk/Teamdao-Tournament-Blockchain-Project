@@ -12,6 +12,6 @@ impl DistributionVoting {
         8 + // discriminator
         1 + //bump
         1 + //ok_votes
-        1; //total_cotes
+        1; //total_votes
         //prize distribution varies depending on the participant member count
 }

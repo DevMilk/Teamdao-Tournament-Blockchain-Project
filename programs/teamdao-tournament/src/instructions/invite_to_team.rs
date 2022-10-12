@@ -51,9 +51,9 @@ pub struct InviteToTeam<'info> {
         payer = signer,
         seeds = ["invitation-proposal".as_bytes(), invited_pubkey.as_ref(), team_account.key().as_ref()],
         bump,
-        space = VoteRecord::LEN
+        space = Record::LEN
     )] 
-    pub invitation_proposal: Account<'info, VoteRecord>,
+    pub invitation_proposal: Account<'info, Record>,
 
     #[account(mut)]
     pub signer: Signer<'info>,

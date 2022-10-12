@@ -74,12 +74,12 @@ pub struct VoteTournamentParticipation<'info> {
     //User can only vote for once and cant change decision in this instruction
     #[account(
         init,
-        space = VoteRecord::LEN,
+        space = Record::LEN,
         payer = signer,
         seeds = ["vote-record".as_bytes(), tournament_participation_data.key().as_ref(), signer.key().as_ref()],
         bump,
     )]
-    pub vote_record: Account<'info, VoteRecord>,
+    pub vote_record: Account<'info, Record>,
 
     #[account(mut)] 
     pub tournament: Box<Account<'info, Tournament>>,

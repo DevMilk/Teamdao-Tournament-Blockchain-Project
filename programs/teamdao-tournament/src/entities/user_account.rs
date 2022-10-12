@@ -5,9 +5,9 @@ use crate::constants::Constants;
 #[account]
 pub struct UserAccount {
     pub bump: u8,
-    pub current_team: String,
-    pub team_addr: Option<Pubkey>,
-    pub is_authority: bool,
+    pub current_team: String, //current team's name
+    pub team_addr: Option<Pubkey>, //team address
+    pub is_authority: bool, //Is user a team authority?
 }
 impl UserAccount {
     pub const LEN: usize = 

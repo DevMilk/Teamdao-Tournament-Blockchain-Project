@@ -88,13 +88,13 @@ WHAT IF:
   ``` Memory issues are considered for accounts that contains scalable data structures with big size potential such as Vector of Pubkeys etc. Tournament accounts are defined in context as a Box (Box<Account<'info, Tournament>>) for storing big data on heap and using the data on stack to point it because in solana, account stack can only keep up to 10Kb for PDA accounts. ```
 
 ## Program Design & File Structure
-Instructions are designed to minimize number of account inputs directly from user by taking advantage of AutoPopulation features on project-serum/anchor and reducing boilerplate codes.
+Instructions are designed to minimize number of account inputs directly from user by taking advantage of AutoPopulation features on project-serum/anchor and reducing boilerplate codes. That means user doesn't have to get all PDAs and specify in inputs defined in the instruction structure.
 
 File structure decouples instructions and accounts to make code easy to read and understand.
 
-- **Entities** (team, user_account, etc.) listed in ``` entities ``` folder. It also contains space of entities.
-- **Instruction** structure and business logics of instructions listed in  ``` instructions ``` folder.
-- **Common** functions (functions shared between multiple instructions) are defined in ``` common.rs ``` file.
-- **Constants** (Maximum team name length, Lamport per sol etc.) are defined in ```constants.rs ``` file.
+- **Entities** (team, user_account, etc.) listed in ```entities``` folder. It also contains space of entities.
+- **Instruction** structure and business logics of instructions listed in  ```instructions``` folder.
+- **Common** functions (functions shared between multiple instructions) are defined in ```common.rs``` file.
+- **Constants** (Maximum team name length, Lamport per sol etc.) are defined in ```constants.rs``` file.
 - **Errors** defined in ```errors.rs``` file.
 - **Entrypoints and Program Id** defined in ```lib.rs``` file.

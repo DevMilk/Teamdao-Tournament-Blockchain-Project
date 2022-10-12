@@ -71,10 +71,10 @@ pub struct VotePrizeDistribution<'info> {
         init, 
         payer = signer,
         seeds = ["vote-record".as_bytes(), distribution_voting.key().as_ref(), signer.key().as_ref()], 
-        space = VoteRecord::LEN,
+        space = Record::LEN,
         bump,
     )]
-    pub vote_record: Account<'info, VoteRecord>,
+    pub vote_record: Account<'info, Record>,
 
     //Invited User's Sign
     #[account(mut)]

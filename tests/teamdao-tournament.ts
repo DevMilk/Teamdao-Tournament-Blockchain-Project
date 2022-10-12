@@ -1,7 +1,5 @@
 import * as anchor from '@project-serum/anchor'
 import { Program } from '@project-serum/anchor'
-import { assert } from 'console'
-import { generateKeyPair, generateKeyPairSync } from 'crypto'
 import { TeamdaoTournament } from '../target/types/teamdao_tournament'
 import { LAMPORTS_PER_SOL, AccountMeta} from "@solana/web3.js";
 import { expect } from 'chai'
@@ -243,7 +241,6 @@ const program = anchor.workspace.TeamdaoTournament as Program<TeamdaoTournament>
         return meta;
       }
     );
-    console.log(winnerAccountInfos);
     const ix = await program.methods
       .givePrize(winnerIndividualOrTeam)
       .accounts(
@@ -262,7 +259,7 @@ const program = anchor.workspace.TeamdaoTournament as Program<TeamdaoTournament>
     Math.random().toString(36).slice(start,end);
 
   //#endregion
-  /*
+  
 describe('teamdao-tournament', () => {
   
   //TESTS
@@ -351,21 +348,50 @@ describe('teamdao-tournament', () => {
     expect(isThrowedError && foundMemberBeforeLeave).to.equal(true);
 
   })
-
-  
-
-
 })
+
+//Full Story of Tournament
+/*
+Pegasus: Tournament Manager, 
+Yugi: Team Owner, 
+Joey: Team Member, 
+Kaiba: Individual Participant   
+
+Evertone creates account and gets airdrop. 
+Pegasus creates a tournament with 3 SOL prize. (3 SOL is withdrawn from its account to tournament account) 
+
+Yugi creates a team.
+Yugi invites Joey to his team.
+Joey accepts team invitation and joins team.
+
+Yugi creates a participation voting to join Pegasus's tournament.
+Yugi votes as yes in participation voting.
+Joey votes as yes in participation voting so Yugi's team joins Pegasus's tournament.
+
+Kaiba joins tournament individually
+
+Yugi doesn't care money so he creates a prize distribution with %10 share of himself and %90 share of joey.
+Yugi votes as yes for prize distribution voting.
+Joey votes as yes for prize distribution voting and prize distribution changes.
+
+Pegasus is an honest person (An oracle in blockchain term), he 
+admits that Yugi's team won tournament so he specify Yugi's team as winner and prize distributed to Yugi as 0.3 SOL, Joey as 2.7 SOL.
+
+
+Kaiba is so rich and cool that he doesn't even care prize.
 */
 describe("Tournament Test", ()=> {
 
   
   it('Create tournament, get participants, select winner by distributing prize', async () => {
     
-    //---CREATE TOURNAMENT---
-    const [tournamentManager, _] = await generateUserAccount();
+    //---CREATE USER ACCOUNTS (CHARACTERS)---
+    const [pegasus, _] = await generateUserAccount();
+    const [yugi, __] = await generateUserAccount();
+    const [joey, ___] = await generateUserAccount();
+    const [kaiba, ____] = await generateUserAccount();
 
-    //Parameters
+    //--- CREATE TOURNAMENT ---
     const tournamentId = generateRandomString(0,8);
     const tournamentName = generateRandomString();
     const tournamentRewardAsLamport = 3 * LAMPORTS_PER_SOL;
@@ -373,70 +399,76 @@ describe("Tournament Test", ()=> {
 
 
     //Get created tournament
-    const tournamentPDA = await createTournament(tournamentManager, tournamentId, tournamentName, tournamentRewardAsLamport,maxParticipantNum);
-
+    const tournamentPDA = await createTournament(pegasus, tournamentId, tournamentName, tournamentRewardAsLamport,maxParticipantNum);
+    console.log("Pegasus created tournament.");
 
     //CHECK: if tournamentData created correctly
     const tournamentData = await program.account.tournament.fetch(tournamentPDA);
     expect(tournamentData.tournamentId).to.equal(tournamentId);
     expect(tournamentData.tournamentName).to.equal(tournamentName);
     expect(tournamentData.reward.toNumber()).to.equal(tournamentRewardAsLamport);
-    expect(tournamentData.manager.toString()).to.equal(tournamentManager.publicKey.toString());
+    expect(tournamentData.manager.toString()).to.equal(pegasus.publicKey.toString());
 
 
 
     //---CREATE TEAM PARTICIPANTS---
-    const [teamCap, ll] = await generateUserAccount();
-    const [teamMember, ___] = await generateUserAccount();
+    
     //Get created tournament with default parameters
-    const teamPDA = await createTeam(teamCap);    
-    await inviteToTeam(teamCap,teamMember.publicKey);
-    await AnswerProposal(teamMember,teamPDA, true);
+    const teamPDA = await createTeam(yugi);    
+    console.log("Yugi created team.")
 
+    await inviteToTeam(yugi,joey.publicKey);
+    console.log("Yugi Invited Joey to join his team.")
 
-
-    //---CREATE INDIVIDUAL PARTICIPANT---
-    const [individualParticipant, l] = await generateUserAccount();
-
-
+    await AnswerProposal(joey,teamPDA, true);
+    console.log("Joey accepted team invitation of Yugi")
 
 
     //---TOURNAMENT ENTRANCE---
 
     //Entering as a team
-    const tournamentProposalPDA = await enterTournament(teamCap, tournamentPDA, teamPDA);
-    await voteTournamentParticipation(teamCap, tournamentPDA, true);
-    await voteTournamentParticipation(teamMember, tournamentPDA, true);
+    await enterTournament(yugi, tournamentPDA, teamPDA);
+    console.log("Yugi attempts to enter Pegasus's tournament as team, now he needs votes of team members to enter")
+
+    await voteTournamentParticipation(yugi, tournamentPDA, true);
+    console.log("Yugi votes as yes to tournament participation")
+
+    await voteTournamentParticipation(joey, tournamentPDA, true);
+    console.log("Joey votes as yes to tournament participation")
 
     //Entering as Individual
-    await enterTournament(individualParticipant, tournamentPDA, individualParticipant.publicKey);
-
+    await enterTournament(kaiba, tournamentPDA, kaiba.publicKey);
+    console.log("Kaiba enters tournament individually")
     
     const tournament = await program.account.tournament.fetch(tournamentPDA);
     const tournamentParticipantList = tournament.participants.map(participant => participant.toString());
+
     //CHECK: Is team registered in tournament?
     const isTeamInTournament = tournamentParticipantList.includes(teamPDA.toString());
     expect(isTeamInTournament).to.be.equal(true);
     
     //CHECK: Is individual player registered in tournament?
-    const isIndividualInTournament = tournamentParticipantList.includes(individualParticipant.publicKey.toString());
+    const isIndividualInTournament = tournamentParticipantList.includes(kaiba.publicKey.toString());
     expect(isIndividualInTournament).to.be.equal(true);
 
-    console.log("All Entered tournament")
-
     const prize_dist = [0.1, 0.9];
-    const prizeDistPDA = await createPrizeDistribution(teamCap, tournamentPDA, prize_dist);
-    console.log("vote")
-    await votePrizeDistribution(teamCap, tournamentPDA, prizeDistPDA, true);
-    console.log("vote")
-    await votePrizeDistribution(teamMember, tournamentPDA, prizeDistPDA, true);
+    const prizeDistPDA = await createPrizeDistribution(yugi, tournamentPDA, prize_dist);
+    console.log("Yugi creates prize distribution voting for tournament with %10 as his own share");
 
-    const balanceBeforePrize = await program.provider.connection.getBalance(teamMember.publicKey)
-    console.log(await program.provider.connection.getBalance(tournamentManager.publicKey));
-    await givePrize(tournamentManager, teamPDA, tournamentPDA);
-    console.log("ok");
-    const balanceAfterPrize = await program.provider.connection.getBalance(teamMember.publicKey);
+    await votePrizeDistribution(yugi, tournamentPDA, prizeDistPDA, true);
+    console.log("Yugi votes as yes to prize distribution voting");
+
+    await votePrizeDistribution(joey, tournamentPDA, prizeDistPDA, true);
+    console.log("Joey votes as yes to prize distribution voting, prize distribution changed");
+
+    const balanceBeforePrize = await program.provider.connection.getBalance(joey.publicKey)
+
+    await givePrize(pegasus, teamPDA, tournamentPDA);
+    console.log("Pegasus admits Yugi's team as winner, prize automatically distributed to Yugi and Joey");
+
+    const balanceAfterPrize = await program.provider.connection.getBalance(joey.publicKey);
     expect(balanceBeforePrize).to.equal(balanceAfterPrize - tournamentRewardAsLamport * prize_dist[1]);
+    console.log("Done");
   })
 
 
